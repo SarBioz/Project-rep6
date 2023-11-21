@@ -4,12 +4,12 @@ library(scattermore)
 library(Seurat)
 library(here)
 
-setwd("D:/Chain_lab/secondarticle")
+setwd("D:/secondarticle")
 getwd()
-chimp_meta <- readRDS(file.path("D:/Chain_lab/secondarticle", "chimp_meta.RDS"))
+chimp_meta <- readRDS(file.path("D:/secondarticle", "chimp_meta.RDS"))
 
 #load and wrangle data
-reductions <- readRDS(file.path("D:/Chain_lab/secondarticle", "chimp_all_umap_coords_2d.RDS"))
+reductions <- readRDS(file.path("D:/secondarticle", "chimp_all_umap_coords_2d.RDS"))
 
 to_plot <- reductions %>%
   as_tibble(rownames = "sample_id") %>%
