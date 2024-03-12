@@ -40,7 +40,6 @@ Genes_At_Least_Two_Cells_name <- data.frame(
 genepair <- read.csv("/project/pi_frederic_chain_uml_edu/scRNAseq/Sarvenaz/genepairs/Human_GeneParalogPairs_v104.csv")
 genepair <- genepair[genepair$pairs=="pair",] 
 human_10x_cluster_means_df$gene_name <- rownames(human_10x_cluster_means_df)
-rownames(your_data_frame) <- NULL
 update_transcript_types <- function(gene_df, gene_data) {
   # Merge based on gene name
   merged_df <- merge(gene_df, gene_data, by.x = "gene_name", by.y = "Gene.name", all.x = FALSE)
@@ -58,24 +57,17 @@ update_transcript_types <- function(gene_df, gene_data) {
   return (bind_rows(merged_df, merged_df_synonyms))
 }
 
+
+
+
 # Apply the function to each dataset
 avgExpData <- update_transcript_types(human_10x_cluster_means_df, geneanno)
 avgExpData<- subset(avgExpData, Transcript.type == "protein_coding")
-process_data <- function(input_data) {
-  result <- input_data %>%
-    group_by(gene_name) %>%
-    summarize(
-      Gene.Synonym = ifelse(all(is.na(Gene.Synonym)), NA, paste(na.omit(Gene.Synonym), collapse = ",")),
-       
-    )
-  return(result)
-}
-# Apply the function to each dataset
-avgExpData_name <- process_data(avgExpData)
 
-avgExpData <- avgExpData %>%
-  group_by(gene_name) %>%
-  summarise(Avg_Expression = mean(Expression, na.rm = TRUE))
+avgExpData <- merge(human_10x_cluster_means_df, geneanno, by.x = "gene_name", by.y = "Gene.name", all.x = FALSE)
+avgExpData<- subset(avgExpData, Transcript.type == "protein_coding")
+
+
 
 
 df_no_duplicates <- avgExpData[!duplicated(avgExpData$gene_name), ]
@@ -87,11 +79,12 @@ not_expressed <- data.frame(apply(df_no_duplicates[, 2:34], 1, sum),df_no_duplic
 colnames(not_expressed) <- c("sum","Gene.Synonym","Gene.stable.ID")
 Class_0_values <- data.frame(gene_name = rownames(not_expressed[not_expressed$sum == 0, , drop = FALSE]), Gene.stable.ID = not_expressed$Gene.stable.ID[not_expressed$sum == 0])
 
+
+
 genepair_0 <-genepair
 zero_sum_names <- Class_0_values$Gene.stable.ID
 genepair_0$zero_sum <- genepair$ensembl_gene_id %in% zero_sum_names & genepair$paralogue_ensembl_gene_id %in% zero_sum_names
 genepair_0 <- subset(genepair_0, zero_sum == TRUE)
-
 
 #Class 1 (one paralog expressed)-----------------------------------------
 genepair_1 <-genepair
@@ -105,5 +98,57 @@ genepair_1 <- subset(genepair_1, class1 == TRUE)
 genepair_2 <-genepair
 genepair_2$class2 <- ((genepair$ensembl_gene_id %in% non_zero_sum$Gene.stable.ID) & (genepair$paralogue_ensembl_gene_id %in% non_zero_sum$Gene.stable.ID))
 genepair_2 <- subset(genepair_2, class2 == TRUE)
-genepair_2 <- genepair_2[, c("name", "paralogue_name")]
-df_cluster <- df_no_duplicates[, 2:35]
+genepair_2 <- genepair_2[, c("name", "paralogue_name", "ensembl_gene_id", "paralogue_ensembl_gene_id")]
+df_cluster <- df_no_duplicates[, 2:36]
+
+ 
+pair_cluster <- df_cluster[match(genepair_2$ensembl_gene_id, df_cluster$Gene.stable.ID), ]
+para_cluster <- df_cluster[match(genepair_2$paralogue_ensembl_gene_id, df_cluster$Gene.stable.ID), ]
+
+ratio <- pair_cluster[, 1:34]/ para_cluster[, 1:34]
+ratio <- ifelse(ratio >= 1/9 & ratio <= 9, 1, 0)
+
+genepair_2$ratio <- rowSums(ratio)
+genepair_2 <- subset(genepair_2, ratio == 34)
+
+
+# Class 3-------------------------------------------------------------------------------------------------
+genepair_3 <-genepair
+genepair_3$class3 <- ((genepair$ensembl_gene_id %in% non_zero_sum$Gene.stable.ID) & (genepair$paralogue_ensembl_gene_id %in% non_zero_sum$Gene.stable.ID))
+genepair_3 <- subset(genepair_3, class3 == TRUE)
+genepair_3 <- genepair_3[, c("name", "paralogue_name", "ensembl_gene_id", "paralogue_ensembl_gene_id")]
+df_cluster <- df_no_duplicates[, 2:36]
+
+
+pair_cluster <- df_cluster[match(genepair_3$ensembl_gene_id, df_cluster$Gene.stable.ID), ]
+para_cluster <- df_cluster[match(genepair_3$paralogue_ensembl_gene_id, df_cluster$Gene.stable.ID), ]
+
+ratio <- pair_cluster[, 1:34]/ para_cluster[, 1:34]
+ratio <- ifelse(ratio <= 1/9 | ratio >= 9, 1, 0)
+
+genepair_3$ratio <- rowSums(ratio)
+genepair_3 <- subset(genepair_3, ratio >= 1)
+
+# Class 4------------------------------------------------------------------------------------------------
+genepair_4 <-genepair
+genepair_4$class4 <- ((genepair$ensembl_gene_id %in% non_zero_sum$Gene.stable.ID) & (genepair$paralogue_ensembl_gene_id %in% non_zero_sum$Gene.stable.ID))
+genepair_4 <- subset(genepair_4, class4 == TRUE)
+genepair_4 <- genepair_4[, c("name", "paralogue_name", "ensembl_gene_id", "paralogue_ensembl_gene_id")]
+df_cluster <- df_no_duplicates[, 2:36]
+
+
+pair_cluster <- df_cluster[match(genepair_4$ensembl_gene_id, df_cluster$Gene.stable.ID), ]
+para_cluster <- df_cluster[match(genepair_4$paralogue_ensembl_gene_id, df_cluster$Gene.stable.ID), ]
+
+ratio <- pair_cluster[, 1:34]/ para_cluster[, 1:34]
+ratio <- ifelse(ratio <= 1/9, 1, 0)
+
+genepair_4$ratio_l <- rowSums(ratio)
+
+ratio <- pair_cluster[, 1:34]/ para_cluster[, 1:34]
+ratio <- ifelse(ratio >= 9, 1, 0)
+
+genepair_4$ratio_h <- rowSums(ratio)
+
+genepair_4 <- subset(genepair_4, ratio_l > 0 & ratio_h > 0)
+
