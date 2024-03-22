@@ -74,8 +74,8 @@ df_no_duplicates <- avgExpData[!duplicated(avgExpData$gene_name), ]
 df_no_duplicates <- df_no_duplicates[, !(names(df_no_duplicates) %in% c("Gene.Synonym"))]
 rownames(df_no_duplicates) <- df_no_duplicates$gene_name
 #Class 0 (neither paralog expressed)--------------------------
-not_expressed <- data.frame(apply(df_no_duplicates[, 2:34], 1, sum),df_no_duplicates$Gene.Synonym,df_no_duplicates$Gene.stable.ID)
-colnames(not_expressed) <- c("sum","Gene.Synonym","Gene.stable.ID")
+not_expressed <- data.frame(apply(df_no_duplicates[, 2:34], 1, sum),df_no_duplicates$Gene.stable.ID)
+colnames(not_expressed) <- c("sum","Gene.stable.ID")
 Class_0_values <- data.frame(gene_name = rownames(not_expressed[not_expressed$sum == 0, , drop = FALSE]), Gene.stable.ID = not_expressed$Gene.stable.ID[not_expressed$sum == 0])
 
 
