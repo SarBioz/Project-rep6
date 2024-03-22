@@ -72,7 +72,6 @@ avgExpData<- subset(avgExpData, Transcript.type == "protein_coding")
 
 df_no_duplicates <- avgExpData[!duplicated(avgExpData$gene_name), ]
 df_no_duplicates <- df_no_duplicates[, !(names(df_no_duplicates) %in% c("Gene.Synonym"))]
-df_no_duplicates$Gene.Synonym <- avgExpData_name$Gene.Synonym
 rownames(df_no_duplicates) <- df_no_duplicates$gene_name
 #Class 0 (neither paralog expressed)--------------------------
 not_expressed <- data.frame(apply(df_no_duplicates[, 2:34], 1, sum),df_no_duplicates$Gene.Synonym,df_no_duplicates$Gene.stable.ID)
