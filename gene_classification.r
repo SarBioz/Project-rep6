@@ -93,7 +93,7 @@ zero_sum <- names[names$sum == 0, ]
 genepair_1$class1 <- ((genepair$ensembl_gene_id %in% non_zero_sum$Gene.stable.ID) & (genepair$paralogue_ensembl_gene_id %in% zero_sum$Gene.stable.ID)) | ((genepair$ensembl_gene_id %in% zero_sum$Gene.stable.ID) & (genepair$paralogue_ensembl_gene_id %in% non_zero_sum$Gene.stable.ID))
 genepair_1 <- subset(genepair_1, class1 == TRUE)
 
-# Class 2
+# Class 2-------------------------------------------
 genepair_2 <-genepair
 genepair_2$class2 <- ((genepair$ensembl_gene_id %in% non_zero_sum$Gene.stable.ID) & (genepair$paralogue_ensembl_gene_id %in% non_zero_sum$Gene.stable.ID))
 genepair_2 <- subset(genepair_2, class2 == TRUE)
@@ -103,7 +103,7 @@ df_cluster <- df_no_duplicates[, 2:36]
  
 pair_cluster <- df_cluster[match(genepair_2$ensembl_gene_id, df_cluster$Gene.stable.ID), ]
 para_cluster <- df_cluster[match(genepair_2$paralogue_ensembl_gene_id, df_cluster$Gene.stable.ID), ]
-
+para_cluster[, 1:34] <- lapply(para_cluster[, -ncol(para_cluster)], function(x) ifelse(x == 0, x + 0.0000001, x))
 ratio <- pair_cluster[, 1:34]/ para_cluster[, 1:34]
 ratio <- ifelse(ratio >= 1/9 & ratio <= 9, 1, 0)
 
@@ -111,7 +111,7 @@ genepair_2$ratio <- rowSums(ratio)
 genepair_2 <- subset(genepair_2, ratio == 34)
 
 
-# Class 3-------------------------------------------------------------------------------------------------
+# Class 3--------------------------------------------
 genepair_3 <-genepair
 genepair_3$class3 <- ((genepair$ensembl_gene_id %in% non_zero_sum$Gene.stable.ID) & (genepair$paralogue_ensembl_gene_id %in% non_zero_sum$Gene.stable.ID))
 genepair_3 <- subset(genepair_3, class3 == TRUE)
@@ -121,6 +121,7 @@ df_cluster <- df_no_duplicates[, 2:36]
 
 pair_cluster <- df_cluster[match(genepair_3$ensembl_gene_id, df_cluster$Gene.stable.ID), ]
 para_cluster <- df_cluster[match(genepair_3$paralogue_ensembl_gene_id, df_cluster$Gene.stable.ID), ]
+para_cluster[, 1:34] <- lapply(para_cluster[, -ncol(para_cluster)], function(x) ifelse(x == 0, x + 0.0000001, x))
 
 ratio <- pair_cluster[, 1:34]/ para_cluster[, 1:34]
 ratio <- ifelse(ratio <= 1/9 | ratio >= 9, 1, 0)
@@ -128,7 +129,7 @@ ratio <- ifelse(ratio <= 1/9 | ratio >= 9, 1, 0)
 genepair_3$ratio <- rowSums(ratio)
 genepair_3 <- subset(genepair_3, ratio >= 1)
 
-# Class 4------------------------------------------------------------------------------------------------
+# Class 4---------------------------------------------------------
 genepair_4 <-genepair
 genepair_4$class4 <- ((genepair$ensembl_gene_id %in% non_zero_sum$Gene.stable.ID) & (genepair$paralogue_ensembl_gene_id %in% non_zero_sum$Gene.stable.ID))
 genepair_4 <- subset(genepair_4, class4 == TRUE)
@@ -138,6 +139,7 @@ df_cluster <- df_no_duplicates[, 2:36]
 
 pair_cluster <- df_cluster[match(genepair_4$ensembl_gene_id, df_cluster$Gene.stable.ID), ]
 para_cluster <- df_cluster[match(genepair_4$paralogue_ensembl_gene_id, df_cluster$Gene.stable.ID), ]
+para_cluster[, 1:34] <- lapply(para_cluster[, -ncol(para_cluster)], function(x) ifelse(x == 0, x + 0.0000001, x))
 
 ratio <- pair_cluster[, 1:34]/ para_cluster[, 1:34]
 ratio <- ifelse(ratio <= 1/9, 1, 0)
@@ -150,4 +152,5 @@ ratio <- ifelse(ratio >= 9, 1, 0)
 genepair_4$ratio_h <- rowSums(ratio)
 
 genepair_4 <- subset(genepair_4, ratio_l > 0 & ratio_h > 0)
-
+genepair_3$class <- ifelse(genepair_3$name %in% genepair_4$name & genepair_3$paralogue_name %in% genepair_4$paralogue_name, "true", "false")
+genepair_3 <- genepair_3[genepair_3$class != "true", ]
