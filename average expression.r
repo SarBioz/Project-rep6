@@ -23,6 +23,13 @@ obj <- RunUMAP(obj, dims = 1:20, reduction = "pca", reduction.name = "umap.unint
 umap_coords <- as.data.frame(Embeddings(obj, reduction = "umap.unintegrated")[, 1:2])
 clusters <- as.numeric(Idents(obj))
 
+human_10x_data <- subset(obj, subset = species_tech == "human_10x")
+# Calculate average expression within each cluster for the filtered data
+human_10x_cluster_means <- Seurat::AverageExpression(human_10x_data, by.group = "clusters")
+human_10x_cluster_means_df <- as.data.frame(human_10x_cluster_means)
+# Print the result
+print(human_10x_cluster_means)
+
 # Access gene expression data for each cluster
 cluster_gene_expression <- human_10x_data@assays$RNA@data
 # Accessing cluster information
