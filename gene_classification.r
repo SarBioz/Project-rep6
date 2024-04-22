@@ -60,7 +60,7 @@ update_transcript_types <- function(gene_df, gene_data) {
 
 
 
-# Apply the function to each dataset
+
 avgExpData <- merge(human_10x_cluster_means_df, geneanno, by.x = "gene_name", by.y = "Gene.name", all.x = FALSE)
 avgExpData<- subset(avgExpData, Transcript.type == "protein_coding")
 
